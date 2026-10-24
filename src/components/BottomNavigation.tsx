@@ -1,5 +1,6 @@
 import React from 'react';
 import { Home, FolderClock, Sparkles, Stethoscope, User } from 'lucide-react';
+import { useLanguage } from '../context/LanguageContext';
 
 interface BottomNavigationProps {
   currentTab: string;
@@ -7,12 +8,14 @@ interface BottomNavigationProps {
 }
 
 export const BottomNavigation: React.FC<BottomNavigationProps> = ({ currentTab, onNavigate }) => {
+  const { t } = useLanguage();
+
   const tabs = [
-    { id: 'home', label: 'Home', icon: Home },
-    { id: 'documents', label: 'History', icon: FolderClock },
-    { id: 'ask-ayu', label: 'Ask Care', icon: Sparkles },
-    { id: 'doctor-access', label: 'Doctor', icon: Stethoscope },
-    { id: 'account', label: 'Account', icon: User },
+    { id: 'home', label: t('nav.home'), icon: Home },
+    { id: 'documents', label: t('nav.history'), icon: FolderClock },
+    { id: 'ask-ayu', label: t('nav.askCare'), icon: Sparkles },
+    { id: 'doctor-access', label: t('nav.doctor'), icon: Stethoscope },
+    { id: 'account', label: t('nav.account'), icon: User },
   ];
 
   return (

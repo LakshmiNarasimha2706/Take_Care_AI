@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ShieldCheck, Key, Clock, AlertCircle, Loader2, CheckCircle2, Info, Lock } from 'lucide-react';
 import { ApiService } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 interface DoctorAccessGatewayProps {
   initialCode?: string;
@@ -13,6 +14,7 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
   onAccessGranted,
   onReturnToPatientView,
 }) => {
+  const { t } = useLanguage();
   // Start with empty digits - no pre-filled fake or premature code
   const [digits, setDigits] = useState<string[]>(() => {
     if (initialCode && initialCode.length === 6 && /^\d{6}$/.test(initialCode)) {
@@ -91,7 +93,7 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
     const fullCode = (codeToVerify || digits.join('')).trim();
     if (fullCode.length < 6) {
       setErrorMessage({
-        text: 'Please enter all 6 digits of the patient access code.',
+        text: t('doctor.allDigitsRequired'),
         type: 'error',
       });
       return;
@@ -113,22 +115,22 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
       if (!res.ok) {
         if (res.status === 429 || data.status === 'rate_limited') {
           setErrorMessage({
-            text: `<strong>Rate-Limiting Active:</strong> ${data.error || 'Too many failed attempts. Try again in 15 minutes.'}`,
+            text: `<strong>${t('doctor.rateLimited')}</strong>`,
             type: 'rate',
           });
         } else if (res.status === 403 && data.status === 'expired') {
           setErrorMessage({
-            text: `<strong>Access Window Expired:</strong> ${data.error || 'This code has exceeded its authorized window.'}`,
+            text: `<strong>${t('doctor.windowExpired')}</strong>`,
             type: 'expired',
           });
         } else if (res.status === 403 && data.status === 'revoked') {
           setErrorMessage({
-            text: `<strong>Access Revoked:</strong> ${data.error || 'The patient has explicitly revoked access to this sharing token.'}`,
+            text: `<strong>${t('doctor.accessRevoked')}</strong>`,
             type: 'error',
           });
         } else {
           setErrorMessage({
-            text: `<strong>Verification Failed:</strong> ${data.error || 'Invalid access code. Please check with your patient.'}`,
+            text: `<strong>${t('doctor.verificationFailed')}</strong>`,
             type: 'error',
           });
         }
@@ -142,7 +144,7 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
       }
     } catch (err: any) {
       setErrorMessage({
-        text: `<strong>Connection Error:</strong> ${err.message || 'Unable to connect to hospital gateway backend. Check network.'}`,
+        text: `<strong>${t('doctor.connectionError')}</strong>`,
         type: 'error',
       });
     } finally {
@@ -156,15 +158,15 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            View Patient Summary
+            {t('doctor.viewPatientSummary')}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Enter the 6-digit access code provided by your patient.
+            {t('doctor.enterAccessCode')}
           </p>
         </div>
         <div className="bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span className="text-[11px] text-teal-800 font-semibold">Doctor Access</span>
+          <span className="text-[11px] text-teal-800 font-semibold">{t('doctor.doctorAccess')}</span>
         </div>
       </div>
 
@@ -172,7 +174,7 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
       <div className="p-3.5 bg-teal-50/80 border border-teal-200 rounded-2xl flex items-start gap-2.5 text-xs text-teal-950">
         <ShieldCheck className="w-5 h-5 text-[#006D60] shrink-0 mt-0.5" />
         <div className="leading-relaxed">
-          <strong className="font-bold">Patient-Governed Access:</strong> Clinicians do not sign in as patients. Medical records are unlocked strictly through ephemeral 6-digit tokens validated in real time against the backend.
+          {t('doctor.patientGovernedNotice')}
         </div>
       </div>
 
@@ -183,10 +185,10 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
             <Key className="w-6 h-6 text-[#006D60]" />
           </div>
           <h2 className="text-base font-bold text-slate-900">
-            Enter 6-Digit Access Code
+            {t('doctor.enter6Digit')}
           </h2>
           <p className="text-xs text-slate-500 mt-0.5">
-            The code is valid for 15m, 1h, or 24h as authorized by the patient.
+            {t('doctor.codeValidityNotice')}
           </p>
         </div>
 
@@ -194,7 +196,7 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
         <div>
           <div className="flex items-center justify-between mb-2">
             <label className="text-[11px] font-bold text-slate-700 uppercase tracking-wider">
-              Patient Access Code
+              {t('doctor.patientAccessCode')}
             </label>
             {activeSessionHint && (
               <button
@@ -202,7 +204,7 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
                 onClick={() => pasteCode(activeSessionHint)}
                 className="text-[11px] text-[#006D60] hover:text-teal-800 font-bold flex items-center gap-1 underline underline-offset-2 cursor-pointer"
               >
-                <span>Autofill Active Code ({activeSessionHint})</span>
+                <span>{t('doctor.autofillCode')} ({activeSessionHint})</span>
               </button>
             )}
           </div>
@@ -228,8 +230,8 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
           </div>
 
           <p className="text-[11px] text-slate-400 mt-2 flex items-center justify-between">
-            <span>Auto-advances between inputs. Paste supported.</span>
-            <span className="font-mono text-[10px] text-slate-500">Security Rate-Limited</span>
+            <span>{t('doctor.autoAdvanceNotice')}</span>
+            <span className="font-mono text-[10px] text-slate-500">{t('doctor.securityRateLimited')}</span>
           </p>
         </div>
 
@@ -265,12 +267,12 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
             {isLoading ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                <span>Validating with Hospital Gateway...</span>
+                <span>{t('doctor.validating')}</span>
               </>
             ) : (
               <>
                 <CheckCircle2 className="w-5 h-5" />
-                <span>Verify &amp; View Summary</span>
+                <span>{t('doctor.verifyAndView')}</span>
               </>
             )}
           </button>
@@ -279,31 +281,13 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
         {/* Clinical Testing Walkthrough Tip */}
         <div className="pt-3 border-t border-slate-100">
           <div className="bg-slate-50 border border-slate-200 rounded-xl p-3 text-xs text-slate-600 space-y-1.5">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-slate-800 flex items-center gap-1.5">
-                <Info className="w-4 h-4 text-[#006D60]" />
-                How to Test Doctor Verification
-              </span>
-              <span className="text-[10px] font-bold bg-teal-50 text-[#006D60] border border-teal-200 px-2 py-0.5 rounded-full">
-                Interactive Test
-              </span>
-            </div>
-            <p className="leading-relaxed text-[11px]">
-              1. Open the <strong>Share</strong> tab in the Take Care app.
-            </p>
-            <p className="leading-relaxed text-[11px]">
-              2. Click <strong>Generate Doctor Access Code</strong> to produce a live 6-digit server token.
-            </p>
-            <p className="leading-relaxed text-[11px]">
-              3. Enter that code here and click <strong>Verify &amp; View Summary</strong> to access the clinical view.
-            </p>
             <div className="pt-1 flex items-center gap-2">
               <button
                 type="button"
                 onClick={onReturnToPatientView}
                 className="text-xs text-[#006D60] hover:underline font-semibold"
               >
-                ← Return to Patient View
+                ← {t('doctor.returnToPatient')}
               </button>
             </div>
           </div>
@@ -314,10 +298,10 @@ export const DoctorAccessGateway: React.FC<DoctorAccessGatewayProps> = ({
       <div className="text-center space-y-1 pt-1">
         <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-slate-100 rounded-full text-slate-600 text-[11px] font-medium">
           <Lock className="w-3.5 h-3.5 text-[#006D60]" />
-          <span>Zero-Knowledge Consultation Token Protocol</span>
+          <span>{t('doctor.zeroKnowledge')}</span>
         </div>
         <p className="text-[11px] text-slate-400 px-4 leading-relaxed">
-          HIPAA &amp; ABDM-compliant ephemeral exchange. No patient credentials or passwords required.
+          {t('doctor.hipaaAbdm')}
         </p>
       </div>
     </div>

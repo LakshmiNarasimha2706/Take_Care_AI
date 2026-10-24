@@ -36,9 +36,11 @@ export const ApiService = {
       if (saved && saved.trim()) return saved.trim().replace(/\/+$/, '');
     } catch {}
 
-    // On Capacitor Android native platform, default to developer's LAN host
+    // Dynamic resolution: if running inside Capacitor native shell, fallback to host window origin
     if (typeof window !== 'undefined' && (window as any).Capacitor?.isNativePlatform?.()) {
-      return 'http://10.74.20.17:3000';
+      if (window.location?.hostname && window.location.hostname !== 'localhost') {
+        return window.location.origin;
+      }
     }
     return '';
   },
@@ -86,6 +88,13 @@ export const ApiService = {
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
+    try {
+      const userStr = localStorage.getItem('takecare_current_user');
+      if (userStr) {
+        const u = JSON.parse(userStr);
+        if (u?.id) headers['x-user-id'] = u.id;
+      }
+    } catch {}
     return headers;
   },
 
@@ -509,7 +518,7 @@ export const ApiService = {
 
     const docs = await this.getDocuments();
     return {
-      patient: { id: this.currentUser?.id || 'usr_anonymous', name: this.currentUser?.name || 'User' },
+      patient: { id: 'usr_patient', name: 'User' },
       totalDocuments: docs.length,
       hasSummary: docs.length > 0,
       activeConditions: [],
@@ -545,28 +554,23 @@ export const ApiService = {
         body: JSON.stringify({ duration, scope }),
       });
       const cType = res.headers.get('content-type') || '';
-      if (res.ok && cType.includes('application/json')) {
+      if (cType.includes('application/json')) {
         const data = await res.json();
-        if (data.session) {
+        if (res.ok && data.session) {
           try {
             await firestoreSaveSharingSession(data.session);
           } catch {}
+          return data;
         }
-        return data;
+        if (!res.ok) {
+          return { success: false, error: data.error || 'Server rejected access code generation.' };
+        }
       }
-    } catch {}
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Unable to connect to Take Care health backend.' };
+    }
 
-    // Fallback generate code locally
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    const session = {
-      code,
-      duration,
-      createdAt: Date.now(),
-      expiresAt: Date.now() + 3600 * 1000,
-      status: 'active',
-      scope,
-    };
-    return { success: true, session, code };
+    return { success: false, error: 'Failed to generate code from health server.' };
   },
 
   async revokeAccess(code?: string) {
@@ -589,25 +593,22 @@ export const ApiService = {
   // =====================
   async verifyDoctorAccess(code: string) {
     try {
+      const clean = String(code).trim().replace(/\s+/g, '');
       const res = await fetch(this.url('/api/doctor/verify-access'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ code }),
+        body: JSON.stringify({ code: clean }),
       });
       const cType = res.headers.get('content-type') || '';
-      if (res.ok && cType.includes('application/json')) {
-        return await res.json();
+      if (cType.includes('application/json')) {
+        const data = await res.json();
+        return data;
       }
-    } catch {}
+    } catch (e: any) {
+      return { success: false, error: e.message || 'Unable to connect to hospital gateway backend.' };
+    }
 
-    // Fallback verification for active code
-    return {
-      success: true,
-      authToken: 'dtok_' + Math.random().toString(36).substring(2),
-      patientName: 'Verified Patient',
-      duration: '1h',
-      scope: { summary: true, docs: true, labs: true },
-    };
+    return { success: false, error: 'Unrecognized response from server.' };
   },
 
   async getDoctorSummary(authToken: string) {

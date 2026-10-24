@@ -4,6 +4,7 @@ import { Camera as CapCamera, CameraResultType, CameraSource } from '@capacitor/
 import { Capacitor } from '@capacitor/core';
 import { ProcessedDocument, AcceptanceTestCase } from '../types/clinical';
 import { ApiService } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 interface UploadFlowProps {
   onDocumentProcessed: (doc: ProcessedDocument) => void;
@@ -15,6 +16,7 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
   onDocumentProcessed,
   onManualAdd,
 }) => {
+  const { t } = useLanguage();
   const [isProcessing, setIsProcessing] = useState(false);
   const [processingFilename, setProcessingFilename] = useState('');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -211,10 +213,10 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
         </div>
         <div className="flex-1 min-w-0">
           <p className="text-xs font-bold text-teal-950 truncate">
-            Clinical Privacy &amp; Data Isolation
+            {t('upload.privacyTitle')}
           </p>
           <p className="text-[11px] text-teal-800 leading-tight">
-            Medical documents are analysed directly and saved securely under your personal authenticated record.
+            {t('upload.privacyDesc')}
           </p>
         </div>
       </div>
@@ -233,12 +235,12 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
             onClick={() => setErrorMessage(null)}
             className="text-xs text-rose-600 hover:text-rose-800 font-semibold"
           >
-            Dismiss
+            {t('chat.dismiss')}
           </button>
         </div>
       )}
 
-      {/* Active Processing Indicator (Direct, minimal, no fake stepper stages) */}
+      {/* Active Processing Indicator */}
       {isProcessing ? (
         <div className="bg-white rounded-2xl p-8 border border-teal-200 shadow-sm flex flex-col items-center justify-center text-center space-y-4 animate-fadeIn">
           <div className="relative w-14 h-14 flex items-center justify-center">
@@ -246,9 +248,9 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
             <FileSearch className="w-6 h-6 text-teal-600 absolute" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900">Processing Medical Document...</h3>
+            <h3 className="text-sm font-bold text-slate-900">{t('upload.processingDoc')}</h3>
             <p className="text-xs text-teal-700 font-medium mt-1 truncate max-w-xs">{processingFilename}</p>
-            <p className="text-[11px] text-slate-500 mt-1.5">Extracting medical records and opening verification workspace directly...</p>
+            <p className="text-[11px] text-slate-500 mt-1.5">{t('common.processing')}</p>
           </div>
         </div>
       ) : (
@@ -292,10 +294,10 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
           </div>
 
           <h2 className="text-lg font-bold text-slate-900 mb-1 tracking-tight">
-            Choose Files or Drag &amp; Drop
+            {t('upload.chooseFiles')}
           </h2>
           <p className="text-xs text-slate-500 mb-4 font-normal">
-            PDF, JPG, PNG <span className="text-slate-400">(Max 10 MB per file • Multi-file support)</span>
+            {t('upload.formats')}
           </p>
 
           <button
@@ -307,7 +309,7 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
             className="px-6 py-2.5 rounded-full bg-[#006D60] hover:bg-[#005a4e] text-white font-semibold text-xs shadow-sm active:scale-95 transition-all flex items-center gap-2"
           >
             <FolderOpen className="w-4 h-4" />
-            <span>Choose Files</span>
+            <span>{t('upload.chooseBtn')}</span>
           </button>
         </div>
       )}
@@ -316,7 +318,7 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
       <div className="relative flex items-center justify-center py-1">
         <div className="w-full border-t border-slate-200"></div>
         <span className="absolute px-3 bg-slate-50 text-xs font-semibold text-slate-400 uppercase tracking-wider">
-          Or Quick Actions
+          {t('upload.orQuick')}
         </span>
       </div>
 
@@ -330,7 +332,7 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
           <div className="w-8 h-8 rounded-lg bg-teal-50 text-teal-700 flex items-center justify-center group-hover:bg-[#006D60] group-hover:text-white transition-colors">
             <Camera className="w-4 h-4" />
           </div>
-          <span className="font-semibold text-xs text-slate-900">Take Photo</span>
+          <span className="font-semibold text-xs text-slate-900">{t('upload.takePhoto')}</span>
         </button>
 
         {/* Add Manually Shortcut */}
@@ -344,7 +346,7 @@ export const UploadFlow: React.FC<UploadFlowProps> = ({
           <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-700 flex items-center justify-center group-hover:bg-amber-600 group-hover:text-white transition-colors">
             <FileEdit className="w-4 h-4" />
           </div>
-          <span className="font-semibold text-xs text-slate-900">Add Manually</span>
+          <span className="font-semibold text-xs text-slate-900">{t('upload.addManually')}</span>
         </button>
       </div>
     </div>

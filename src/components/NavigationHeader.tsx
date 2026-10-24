@@ -18,6 +18,8 @@ interface NavigationHeaderProps {
   onBack?: () => void;
 }
 
+import { useLanguage } from '../context/LanguageContext';
+
 export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   currentTab,
   profile,
@@ -31,6 +33,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
   showBack,
   onBack,
 }) => {
+  const { t } = useLanguage();
   const [showUserMenu, setShowUserMenu] = useState(false);
 
   const getTitle = () => {
@@ -38,33 +41,31 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
       case 'home':
         return 'TAKE CARE';
       case 'documents':
-        return 'My Medical History';
+        return t('nav.myMedicalHistory');
       case 'upload':
-        return 'Scan Documents';
+        return t('nav.scanDocuments');
       case 'verification':
-        return 'Visual Verification';
+        return t('nav.visualVerification');
       case 'summary':
-        return 'Health Summary';
+        return t('nav.healthSummary');
       case 'share':
-        return 'Share with Doctor';
+        return t('nav.shareDoctor');
       case 'ask-ayu':
-        return 'Ask Care';
+        return t('nav.askCare');
       case 'reminders':
-        return 'Medicine Reminders';
+        return t('nav.reminders');
       case 'account':
-        return 'Account';
-      case 'abdm':
-        return 'ABDM Health Records';
+        return t('nav.account');
       case 'family':
-        return 'Family Health Profiles';
+        return t('nav.family');
       case 'doctor-access':
-        return 'Doctor Portal Access';
+        return t('nav.doctorPortal');
       case 'profile':
-        return 'Account';
+        return t('nav.account');
       case 'profile-edit':
-        return 'Edit Profile';
+        return t('nav.editProfile');
       case 'settings':
-        return 'Settings';
+        return t('nav.settings');
       default:
         return 'TAKE CARE';
     }
@@ -163,7 +164,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                       className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium"
                     >
                       <User className="w-4 h-4 text-[#006D60]" />
-                      <span>My Profile</span>
+                      <span>{t('nav.myProfile')}</span>
                     </button>
 
                     <button
@@ -176,7 +177,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                       className="w-full text-left px-3 py-2 hover:bg-slate-50 flex items-center gap-2 cursor-pointer font-medium"
                     >
                       <Settings className="w-4 h-4 text-slate-500" />
-                      <span>Settings &amp; Permissions</span>
+                      <span>{t('account.settings')}</span>
                     </button>
 
                     <button
@@ -188,7 +189,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                       className="w-full text-left px-3 py-2 hover:bg-teal-50 flex items-center gap-2 cursor-pointer font-medium text-[#006D60]"
                     >
                       <Users className="w-4 h-4 text-[#006D60]" />
-                      <span>Family</span>
+                      <span>{t('nav.family')}</span>
                     </button>
 
                     <div className="border-t border-slate-100 my-1"></div>
@@ -206,7 +207,7 @@ export const NavigationHeader: React.FC<NavigationHeaderProps> = ({
                       className="w-full text-left px-3 py-2 hover:bg-rose-50 text-rose-600 flex items-center gap-2 cursor-pointer font-medium"
                     >
                       <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
+                      <span>{t('nav.logout')}</span>
                     </button>
                   </div>
                 </>

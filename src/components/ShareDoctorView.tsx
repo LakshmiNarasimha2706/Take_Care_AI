@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { ProcessedDocument, UserProfile } from '../types/clinical';
 import { ApiService } from '../services/api';
+import { useLanguage } from '../context/LanguageContext';
 
 interface ShareDoctorViewProps {
   profile: UserProfile;
@@ -17,14 +18,15 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
   onOpenDoctorPortal,
   onNavigate,
 }) => {
+  const { t } = useLanguage();
   const [accessDuration, setAccessDuration] = useState<'15m' | '1h' | '24h'>('1h');
   const [isCodeGenerated, setIsCodeGenerated] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [sessionStatus, setSessionStatus] = useState<'active' | 'accessed' | 'expired' | 'revoked' | null>(null);
   const [codeValue, setCodeValue] = useState<string>('');
   const [timeLeftSeconds, setTimeLeftSeconds] = useState<number>(0);
-  const [copiedLabel, setCopiedLabel] = useState('Copy Code');
-  const [sharedLabel, setSharedLabel] = useState('Share Code');
+  const [copiedLabel, setCopiedLabel] = useState(t('share.copyCode'));
+  const [sharedLabel, setSharedLabel] = useState(t('share.shareCode'));
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [revokedMessage, setRevokedMessage] = useState<string | null>(null);
 
@@ -217,15 +219,15 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-xl font-bold text-slate-900 tracking-tight">
-            Share Health Summary
+            {t('share.title')}
           </h1>
           <p className="text-xs text-slate-500 mt-0.5">
-            Generate a secure 6-digit access code for your doctor.
+            {t('share.subtitle')}
           </p>
         </div>
         <div className="bg-teal-50 border border-teal-200 px-2.5 py-1 rounded-full flex items-center gap-1.5 flex-shrink-0">
           <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-          <span className="text-[11px] text-teal-800 font-semibold">End-to-End Secure</span>
+          <span className="text-[11px] text-teal-800 font-semibold">{t('share.secureBadge')}</span>
         </div>
       </div>
 
@@ -266,7 +268,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
             </div>
             <div>
               <h2 className="text-xs font-bold text-slate-900 uppercase tracking-wider">
-                Selected Health Summary
+                {t('share.selectedSummary')}
               </h2>
               <p className="text-[11px] text-slate-500">
                 {profile.fullName || 'Valued Patient'} • +91 {profile.mobile}
@@ -278,7 +280,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
             onClick={() => onNavigate('summary')}
             className="text-xs text-teal-700 hover:text-teal-800 font-semibold flex items-center gap-0.5 cursor-pointer"
           >
-            <span>Review</span>
+            <span>{t('share.review')}</span>
             <span className="material-symbols-outlined text-[14px]">chevron_right</span>
           </button>
         </div>
@@ -287,21 +289,21 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
         {hasRecords ? (
           <div className="grid grid-cols-2 gap-2 text-xs">
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Top Allergy</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">{t('share.topAllergy')}</span>
               <span className="font-bold text-rose-700 text-xs mt-0.5 block truncate">
-                {topAllergy ? topAllergy.value : 'None Recorded'}
+                {topAllergy ? topAllergy.value : t('share.noneRecorded')}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
-              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Active Medications</span>
+              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">{t('share.activeMedications')}</span>
               <span className="font-bold text-slate-800 text-xs mt-0.5 block truncate">
-                {topMed ? topMed.title || topMed.value : 'None Recorded'}
+                {topMed ? topMed.title || topMed.value : t('share.noneRecorded')}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
               <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">Diagnoses</span>
               <span className="font-bold text-slate-800 text-xs mt-0.5 block truncate">
-                {topCondition ? topCondition.title || topCondition.value : 'None Recorded'}
+                {topCondition ? topCondition.title || topCondition.value : t('share.noneRecorded')}
               </span>
             </div>
             <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200/80">
@@ -330,15 +332,15 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
         {/* Health Data Scope Checkboxes */}
         <div className="pt-2 border-t border-slate-100 space-y-2">
           <div className="flex items-center justify-between text-xs">
-            <span className="font-bold text-slate-700">Data Scope Included:</span>
+            <span className="font-bold text-slate-700">{t('share.scopeLabel')}:</span>
             <span className="text-teal-700 font-medium text-[11px]">
-              {[includeSummary, includeDocs, includeLabs].filter(Boolean).length} of 3 sections
+              {[includeSummary, includeDocs, includeLabs].filter(Boolean).length} of 3
             </span>
           </div>
 
           <div className="grid grid-cols-1 gap-1.5 text-xs">
             <label className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition cursor-pointer">
-              <span className="font-medium text-slate-800">Consolidated Health Summary</span>
+              <span className="font-medium text-slate-800">{t('share.scopeSummary')}</span>
               <input
                 type="checkbox"
                 checked={includeSummary}
@@ -348,7 +350,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
               />
             </label>
             <label className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition cursor-pointer">
-              <span className="font-medium text-slate-800">Original Document Scans &amp; PDFs</span>
+              <span className="font-medium text-slate-800">{t('share.scopeDocs')}</span>
               <input
                 type="checkbox"
                 checked={includeDocs}
@@ -358,7 +360,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
               />
             </label>
             <label className="flex items-center justify-between p-2 rounded-lg bg-slate-50 border border-slate-200 hover:bg-slate-100 transition cursor-pointer">
-              <span className="font-medium text-slate-800">Lab Results &amp; Biomarkers</span>
+              <span className="font-medium text-slate-800">{t('share.scopeLabs')}</span>
               <input
                 type="checkbox"
                 checked={includeLabs}
@@ -397,7 +399,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
       <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-2xs space-y-3">
         <div>
           <h2 className="text-xs font-bold text-slate-700 uppercase tracking-wider">
-            Access Duration
+            {t('share.durationLabel')}
           </h2>
           <p className="text-[11px] text-slate-500 mt-0.5">
             Session expires automatically after this duration.
@@ -445,12 +447,12 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
             {isGenerating ? (
               <>
                 <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
-                <span>Generating Doctor Access Code...</span>
+                <span>{t('share.generating')}</span>
               </>
             ) : (
               <>
                 <span className="material-symbols-outlined text-[20px]">key</span>
-                <span>Generate Doctor Access Code</span>
+                <span>{t('share.generateBtn')}</span>
               </>
             )}
           </button>
@@ -500,7 +502,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
           {/* 6-Digit Access Code Display */}
           <div className="text-center space-y-2 py-2">
             <span className="text-xs font-semibold text-teal-200 tracking-wider uppercase block">
-              Doctor Access Code
+              {t('share.activeCodeTitle')}
             </span>
             <div className="inline-flex items-center gap-3 bg-white/10 px-6 py-3 rounded-2xl border border-white/20 backdrop-blur-sm shadow-inner">
               <span className="font-mono text-3xl sm:text-4xl font-black tracking-widest text-white select-all">
@@ -540,7 +542,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
               onClick={() => onOpenDoctorPortal(codeValue)}
               className="text-xs text-teal-200 hover:text-white font-bold underline flex items-center gap-1 cursor-pointer"
             >
-              <span>Test Doctor Portal</span>
+              <span>{t('share.openDoctorPortal')}</span>
               <span className="material-symbols-outlined text-[14px]">open_in_new</span>
             </button>
 
@@ -550,7 +552,7 @@ export const ShareDoctorView: React.FC<ShareDoctorViewProps> = ({
               className="px-3 py-1.5 bg-rose-600/80 hover:bg-rose-600 text-white rounded-xl text-xs font-bold flex items-center gap-1 transition cursor-pointer"
             >
               <span className="material-symbols-outlined text-[15px]">block</span>
-              <span>Revoke Access</span>
+              <span>{t('share.revokeBtn')}</span>
             </button>
           </div>
         </div>

@@ -117,6 +117,8 @@ function getQuickMedicalAnswer(query: string, documents: ProcessedDocument[]): s
   return `Quick medical guidance for "${query}":\n\n• Stay well hydrated with plenty of water and get adequate rest.\n• Follow any prescribed medication schedule accurately without skipping doses.\n• If symptoms are severe, painful, or persist longer than 48 hours, please consult a licensed healthcare professional for an in-person clinical evaluation.`;
 }
 
+import { useLanguage } from '../../context/LanguageContext';
+
 export const AskAyuView: React.FC<AskAyuViewProps> = ({
   profile,
   documents,
@@ -124,11 +126,12 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
   onNavigateToUpload,
   onNavigateToHistory,
 }) => {
+  const { language, t } = useLanguage();
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       id: 'msg-initial-1',
       sender: 'care',
-      text: "Hi! I'm Care, your personal health assistant. I can help you understand your medical records, prescriptions, and lab reports within the app.\n\nYou can share documents with your doctor directly from the app during your consultation. Is there a medical document or health concern you'd like help with today?",
+      text: t('chat.welcome'),
       timestamp: '11:42 AM',
     },
   ]);
@@ -162,7 +165,7 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
       .replace(/\n+/g, '. ');
 
     const utterance = new SpeechSynthesisUtterance(cleanSpeechText);
-    utterance.lang = 'en-IN';
+    utterance.lang = language === 'te' ? 'te-IN' : language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : language === 'mr' ? 'mr-IN' : language === 'bn' ? 'bn-IN' : language === 'kn' ? 'kn-IN' : 'en-IN';
     utterance.rate = 1.0;
 
     utterance.onend = () => {
@@ -288,17 +291,21 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
         return;
       }
 
-      // API backend query
+      // API backend query with realistic timeout for AI response
       let answerText = '';
       let sourceDocument: string | undefined = undefined;
 
       try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const timeoutId = setTimeout(() => controller.abort(), 20000);
         const res = await fetch(ApiService.url('/api/chat/ask-ayu'), {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query }),
+          body: JSON.stringify({
+            query,
+            language,
+            history: messages.slice(-4).map((m) => ({ sender: m.sender, text: m.text })),
+          }),
           signal: controller.signal,
         });
         clearTimeout(timeoutId);
@@ -310,9 +317,12 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
           answerText = data.answer || data.reply || '';
           sourceDocument = data.sourceDoc;
           if (data.isEmergency) isEmergency = true;
+        } else if (!res.ok) {
+          const errData = await res.json().catch(() => ({}));
+          console.error('Chat API error:', errData);
         }
-      } catch (chatErr) {
-        console.warn('Backend assistant chat warning:', chatErr);
+      } catch (chatErr: any) {
+        console.warn('Backend assistant chat warning:', chatErr?.message || chatErr);
       }
 
       if (!answerText) {
@@ -337,7 +347,8 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
         speakText(answerText, msgId);
         setWasVoiceUsed(false);
       }
-    } catch {
+    } catch (err: any) {
+      const lower = query.toLowerCase();
       const fallback = getQuickMedicalAnswer(query, documents);
       const isEmerg = lower.includes('chest pain') || lower.includes('heart attack') || lower.includes('stroke');
       const msgId = 'msg-' + Date.now();
@@ -389,13 +400,13 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
       try {
         const recognition = new SpeechRecognition();
         recognitionRef.current = recognition;
-        recognition.lang = 'en-IN';
+        recognition.lang = language === 'te' ? 'te-IN' : language === 'hi' ? 'hi-IN' : language === 'ta' ? 'ta-IN' : language === 'mr' ? 'mr-IN' : language === 'bn' ? 'bn-IN' : language === 'kn' ? 'kn-IN' : 'en-IN';
         recognition.continuous = false;
         recognition.interimResults = true;
 
         recognition.onstart = () => {
           setIsListening(true);
-          setMicStatusHint('Listening... Speak now');
+          setMicStatusHint(t('chat.listening'));
         };
 
         recognition.onresult = (event: any) => {
@@ -453,10 +464,10 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
           </button>
           <div>
             <h1 className="text-base font-bold text-slate-900 tracking-tight flex items-center gap-1.5">
-              <span>Ask Care</span>
+              <span>{t('nav.askCare')}</span>
               <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
             </h1>
-            <p className="text-[10px] text-slate-500 font-medium">AI Clinical Health Assistant</p>
+            <p className="text-[10px] text-slate-500 font-medium">{t('chat.aiClinical')}</p>
           </div>
         </div>
 
@@ -465,7 +476,7 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
           onClick={onBack}
           className="text-xs font-semibold text-[#006D60] px-3 py-1.5 rounded-lg bg-teal-50 border border-teal-200/70 hover:bg-teal-100 transition cursor-pointer"
         >
-          Exit
+          {t('chat.exitChat')}
         </button>
       </div>
 
@@ -487,9 +498,9 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
                       <ShieldAlert className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
                       <div className="text-[11px] leading-relaxed">
                         <strong className="block font-bold uppercase text-[10px] text-rose-700 tracking-wider">
-                          Emergency Clinical Guidance
+                          {t('chat.emergencyGuidance')}
                         </strong>
-                        For sudden, severe, or worsening symptoms (e.g. chest pain, breathing difficulty, severe burns), call <strong>112 / 108</strong> immediately. Do not delay emergency care.
+                        {t('chat.emergencyInstructions')}
                       </div>
                     </div>
                   )}
@@ -514,12 +525,12 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
                       {isSpeaking && speakingMsgId === msg.id ? (
                         <>
                           <VolumeX className="w-3.5 h-3.5 text-rose-600" />
-                          <span className="text-[10px]">Stop</span>
+                          <span className="text-[10px]">{t('chat.stopRead')}</span>
                         </>
                       ) : (
                         <>
                           <Volume2 className="w-3.5 h-3.5" />
-                          <span className="text-[10px]">Listen</span>
+                          <span className="text-[10px]">{t('chat.listen')}</span>
                         </>
                       )}
                     </button>
@@ -579,7 +590,7 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
           onClick={() => handleSendMessage('Show my medical history')}
           className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-full text-[11px] font-semibold text-slate-800 shadow-2xs transition cursor-pointer shrink-0"
         >
-          Show my medical history
+          {t('chat.showHistory')}
         </button>
 
         <button
@@ -587,7 +598,7 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
           onClick={() => handleSendMessage('How do I upload files?')}
           className="px-2.5 py-1 bg-white hover:bg-slate-100 border border-slate-200 rounded-full text-[11px] font-semibold text-slate-800 shadow-2xs transition cursor-pointer inline-flex items-center gap-1 shrink-0"
         >
-          <span>How do I upload files?</span>
+          <span>{t('chat.howUpload')}</span>
           <ScanLine className="w-3 h-3 text-[#006D60]" />
         </button>
       </div>
@@ -596,28 +607,28 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
       <div className="px-3 py-1.5 bg-white border-t border-slate-200 flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
         <span className="text-[10px] font-bold text-[#006D60] uppercase tracking-wider flex items-center gap-1 shrink-0">
           <Sparkles className="w-3 h-3 text-[#006D60]" />
-          <span>Ask follow up:</span>
+          <span>{t('chat.askFollowUp')}</span>
         </span>
         <button
           type="button"
           onClick={() => handleSendMessage('Explain my diagnosed condition and percentage in simple words')}
           className="px-2.5 py-0.5 bg-slate-100 hover:bg-teal-50 hover:text-[#006D60] border border-slate-200 rounded-full text-[10px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer shrink-0"
         >
-          Explain problem &amp; %
+          {t('chat.explainProblem')}
         </button>
         <button
           type="button"
           onClick={() => handleSendMessage('What treatment medication is prescribed for this problem?')}
           className="px-2.5 py-0.5 bg-slate-100 hover:bg-teal-50 hover:text-[#006D60] border border-slate-200 rounded-full text-[10px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer shrink-0"
         >
-          Treatment &amp; doses
+          {t('chat.treatmentDoses')}
         </button>
         <button
           type="button"
           onClick={() => handleSendMessage('What follow-up checkup should I do next?')}
           className="px-2.5 py-0.5 bg-slate-100 hover:bg-teal-50 hover:text-[#006D60] border border-slate-200 rounded-full text-[10px] font-semibold text-slate-700 whitespace-nowrap transition cursor-pointer shrink-0"
         >
-          Next follow-up
+          {t('chat.nextFollowup')}
         </button>
       </div>
 
@@ -636,7 +647,7 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
               onClick={() => setMicStatusHint(null)}
               className="text-[10px] text-teal-600 font-bold ml-2 underline"
             >
-              Dismiss
+              {t('chat.dismiss')}
             </button>
           </div>
         )}
@@ -655,7 +666,7 @@ export const AskAyuView: React.FC<AskAyuViewProps> = ({
               type="text"
               value={inputQuery}
               onChange={(e) => setInputQuery(e.target.value)}
-              placeholder={isListening ? "Listening... Speak now" : "Ask a follow up..."}
+              placeholder={isListening ? t('chat.listening') : t('chat.inputPlaceholder')}
               className="w-full bg-transparent text-xs sm:text-sm text-slate-900 placeholder:text-slate-400 font-medium focus:outline-none"
             />
           </div>

@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { ProcessedDocument, MedicalEntity } from '../types/clinical';
 import { ImageProcessor } from '../services/imageProcessor';
 import { checkIfMayBeOutdated } from '../services/clinicalAnalysis';
+import { useLanguage } from '../context/LanguageContext';
 
 interface TwoPanelVerificationProps {
   document: ProcessedDocument;
@@ -20,6 +21,7 @@ export const TwoPanelVerification: React.FC<TwoPanelVerificationProps> = ({
   onClose,
   onAddManualEntity,
 }) => {
+  const { t } = useLanguage();
   const [zoomLevel, setZoomLevel] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const [isDragging, setIsDragging] = useState(false);
@@ -565,7 +567,7 @@ export const TwoPanelVerification: React.FC<TwoPanelVerificationProps> = ({
                             }}
                             className="px-2.5 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-100 rounded border border-slate-200 cursor-pointer"
                           >
-                            Edit
+                            {t('ocr.edit')}
                           </button>
                           <button
                             type="button"
@@ -577,7 +579,7 @@ export const TwoPanelVerification: React.FC<TwoPanelVerificationProps> = ({
                             }}
                             className="px-2.5 py-1 text-xs font-semibold text-rose-700 hover:bg-rose-50 rounded border border-rose-200 cursor-pointer"
                           >
-                            Reject
+                            {t('ocr.reject')}
                           </button>
                           <button
                             type="button"
@@ -593,7 +595,7 @@ export const TwoPanelVerification: React.FC<TwoPanelVerificationProps> = ({
                                 : 'bg-teal-600 hover:bg-teal-700 text-white'
                             }`}
                           >
-                            {isConfirmed ? '✓ Confirmed' : 'Confirm'}
+                            {isConfirmed ? `✓ ${t('ocr.confirmed')}` : t('ocr.confirm')}
                           </button>
                         </div>
                       </div>

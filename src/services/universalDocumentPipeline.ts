@@ -1116,9 +1116,10 @@ export async function processDocumentUniversal(params: {
 
   // 4. Document Classification
   const classification = classifyDocumentContent(fullRawText, isImageOnly);
-  const documentType = (params.suggestedType && params.suggestedType !== 'uncertain' && params.suggestedType !== 'imaging_image_no_text')
-    ? params.suggestedType
-    : classification.type;
+  const suggested = params.suggestedType as string | undefined;
+  const documentType = (suggested && suggested !== 'uncertain' && suggested !== 'imaging_image_no_text')
+    ? (params.suggestedType as DocumentType)
+    : (classification.type === 'uncertain' ? 'other_medical' : classification.type);
   const isUncertain = classification.isUncertain && !params.suggestedType;
 
   // 5. Clinical Findings Extraction & Grounding
@@ -1180,7 +1181,7 @@ export async function processDocumentUniversal(params: {
     const sanitizedOutput = validateAndSanitizeExtraction(
       {
         document: {
-          type: documentType === 'uncertain' ? 'other_medical' : documentType,
+          type: documentType,
           plain_summary: `Document: ${params.filename}`,
         },
         facts: candidateFacts,

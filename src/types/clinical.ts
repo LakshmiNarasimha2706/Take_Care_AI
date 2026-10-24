@@ -81,6 +81,7 @@ export interface AuthUser {
   id: string;
   mobile: string;
   isVerified: boolean;
+  name?: string;
   email?: string;
   isDemo?: boolean;
 }

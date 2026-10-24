@@ -692,8 +692,8 @@ async function runUniversalPipelineTests(): Promise<TestResult[]> {
   // ================================================================
   {
     // Simulate backend authorization logic
-    const requesterId = 'usr_stranger';
-    const profileOwnerId = 'usr_owner';
+    const requesterId: string = 'usr_stranger';
+    const profileOwnerId: string = 'usr_owner';
     const isAuthorized = requesterId === profileOwnerId;
 
     results.push({
@@ -741,8 +741,8 @@ async function runUniversalPipelineTests(): Promise<TestResult[]> {
   // TEST 19: Permission Revocation
   // ================================================================
   {
-    let memberAccessStatus: 'active' | 'revoked' = 'active';
-    let permissionLevel: 'complete' | 'none' = 'complete';
+    let memberAccessStatus: string = 'active';
+    let permissionLevel: string = 'complete';
 
     // Owner revokes access
     memberAccessStatus = 'revoked';
@@ -950,8 +950,8 @@ async function runUniversalPipelineTests(): Promise<TestResult[]> {
       Boolean(partialProfile.bloodGroup),
       partialProfile.hasHighBp !== undefined,
       partialProfile.hasDiabetes !== undefined,
-      Boolean(partialProfile.emergencyContact?.name?.trim()),
-      Boolean(partialProfile.emergencyContact?.phone?.trim()),
+      Boolean(partialProfile.emergencyContactName?.trim()),
+      Boolean(partialProfile.emergencyContactPhone?.trim()),
     ];
     const partialPct = Math.round((fields.filter(Boolean).length / fields.length) * 100);
 
@@ -962,11 +962,8 @@ async function runUniversalPipelineTests(): Promise<TestResult[]> {
       hasHighBp: false,
       hasDiabetes: true,
       latestBloodSugar: '135 mg/dL',
-      emergencyContact: {
-        name: 'Ramesh Sharma',
-        relationship: 'Spouse',
-        phone: '9876543211',
-      },
+      emergencyContactName: 'Ramesh Sharma',
+      emergencyContactPhone: '9876543211',
     };
     const compFields = [
       Boolean(completeProfile.fullName?.trim()),
@@ -975,8 +972,8 @@ async function runUniversalPipelineTests(): Promise<TestResult[]> {
       Boolean(completeProfile.bloodGroup),
       completeProfile.hasHighBp !== undefined,
       completeProfile.hasDiabetes !== undefined,
-      Boolean(completeProfile.emergencyContact?.name?.trim()),
-      Boolean(completeProfile.emergencyContact?.phone?.trim()),
+      Boolean(completeProfile.emergencyContactName?.trim()),
+      Boolean(completeProfile.emergencyContactPhone?.trim()),
     ];
     const completePct = Math.round((compFields.filter(Boolean).length / compFields.length) * 100);
 
